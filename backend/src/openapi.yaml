@@ -1,0 +1,685 @@
+openapi: 3.0.0
+info:
+  title: E-commerce API
+  description: A comprehensive REST API for a full-featured E-commerce platform
+  version: 1.0.0
+  contact:
+    name: API Support
+    email: support@example.com
+
+servers:
+  - url: http://127.0.0.1:3000/api/v1
+    description: Local development server
+
+tags:
+  - name: Authentication
+    description: User authentication and authorization endpoints
+  - name: Products
+    description: Product catalog management
+  - name: Reviews
+    description: Product reviews and ratings
+  - name: Orders
+    description: Order management and processing
+  - name: Cart
+    description: Shopping cart operations
+  - name: Agents
+    description: Agent management (admin only)
+
+paths:
+  /users/me:
+    get:
+      tags: [Authentication]
+      summary: Get current user profile
+      description: Retrieves the profile information of the currently authenticated user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Current user profile retrieved successfully
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/User'
+        '401':
+          description: Unauthorized - Invalid or missing authentication token
+        '404':
+          description: User not found
+  /users/logout:
+    get:
+      tags: [Authentication]
+      summary: Logout user
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: Successfully logged out
+
+  /users/signup:
+    post:
+      tags: [Authentication]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+                lastName:
+                  type: string
+                email:
+                  type: string
+                  format: email
+                role:
+                  type: string
+                  enum: [user, admin]
+                password:
+                  type: string
+                passwordConfirm:
+                  type: string
+      responses:
+        '200':
+          description: User created successfully
+        '400':
+          description: Validation error
+
+  /users/verifyOtp:
+    post:
+      tags: [Authentication]
+      summary: Verify OTP for user registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                otp:
+                  type: integer
+      responses:
+        '200':
+          description: OTP verified successfully
+        '400':
+          description: Invalid OTP
+
+  /users/login:
+    post:
+      tags: [Authentication]
+      summary: Authenticate user and get token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+                password:
+                  type: string
+      responses:
+        '200':
+          description: Successful login
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  user:
+                    $ref: '#/components/schemas/User'
+        '401':
+          description: Invalid credentials
+
+  /users/refreshToken:
+    post:
+      tags: [Authentication]
+      summary: Refresh authentication token
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                refreshToken:
+                  type: string
+      responses:
+        '200':
+          description: Token refreshed successfully
+
+  /users/forgetPassword:
+    post:
+      tags: [Authentication]
+      summary: Request password reset
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                  format: email
+      responses:
+        '200':
+          description: Password reset email sent
+
+  /users/resetPassword/{token}:
+    patch:
+      tags: [Authentication]
+      summary: Reset user password with token
+      parameters:
+        - name: token
+          in: path
+          required: true
+          schema:
+            type: string
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                password:
+                  type: string
+                passwordConfirm:
+                  type: string
+      responses:
+        '200':
+          description: Password reset successfully
+
+  /users/updateMyPassword:
+    patch:
+      tags: [Authentication]
+      summary: Update current user's password
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                passwordCurrent:
+                  type: string
+                password:
+                  type: string
+                passwordConfirm:
+                  type: string
+      responses:
+        '200':
+          description: Password updated successfully
+
+  /users/updateMe:
+    patch:
+      tags: [Authentication]
+      summary: Update current user's profile
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                firstName:
+                  type: string
+      responses:
+        '200':
+          description: Profile updated successfully
+
+  /reviews:
+    post:
+      tags: [Reviews]
+      summary: Create a new review
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                description:
+                  type: string
+                productId:
+                  type: integer
+                rating:
+                  type: number
+                  format: float
+      responses:
+        '201':
+          description: Review created successfully
+    get:
+      tags: [Reviews]
+      summary: Get all reviews
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: List of reviews
+    delete:
+      tags: [Reviews]
+      summary: Delete all reviews
+      security:
+        - bearerAuth: []
+      responses:
+        '200':
+          description: All reviews deleted
+
+  /reviews/{id}:
+    get:
+      tags: [Reviews]
+      summary: Get a specific review
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Review details
+    patch:
+      tags: [Reviews]
+      summary: Update a review
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                rating:
+                  type: number
+                  format: float
+      responses:
+        '200':
+          description: Review updated successfully
+    delete:
+      tags: [Reviews]
+      summary: Delete a specific review
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Review deleted successfully
+
+  /products:
+    get:
+      tags: [Products]
+      summary: Get all products
+      responses:
+        '200':
+          description: List of products
+    post:
+      tags: [Products]
+      summary: Create a new product
+      responses:
+        '201':
+          description: Product created successfully
+    delete:
+      tags: [Products]
+      summary: Delete all products
+      responses:
+        '200':
+          description: All products deleted
+
+  /products/featured:
+    get:
+      tags: [Products]
+      summary: Get featured products
+      responses:
+        '200':
+          description: List of featured products
+
+  /products/category/{category}:
+    get:
+      tags: [Products]
+      summary: Get products by category
+      parameters:
+        - name: category
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of products in category
+
+  /products/type/{type}:
+    get:
+      tags: [Products]
+      summary: Get products by type
+      parameters:
+        - name: type
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: List of products of type
+
+  /products/{id}:
+    get:
+      tags: [Products]
+      summary: Get a specific product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product details
+    delete:
+      tags: [Products]
+      summary: Delete a specific product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Product deleted successfully
+
+  /products/{id}/reviews:
+    get:
+      tags: [Products]
+      summary: Get reviews for a specific product
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: List of product reviews
+
+  /orders/create-order:
+    post:
+      tags: [Orders]
+      summary: Create a new order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                shipCountry:
+                  type: string
+                shipCity:
+                  type: string
+                shipPostalCode:
+                  type: integer
+                shipAddress1:
+                  type: string
+                phone:
+                  type: string
+      responses:
+        '201':
+          description: Order created successfully
+
+  /orders/capture:
+    post:
+      tags: [Orders]
+      summary: Capture payment for an order
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                paypalOrderId:
+                  type: string
+      responses:
+        '200':
+          description: Payment captured successfully
+
+  /orders/user-orders:
+    get:
+      tags: [Orders]
+      summary: Get all orders
+      responses:
+        '200':
+          description: List of orders
+
+  /orders/{id}:
+    get:
+      tags: [Orders]
+      summary: Get a specific order
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Order details
+
+  /orders/track/{trackingId}:
+    get:
+      tags: [Orders]
+      summary: Track an order
+      parameters:
+        - name: trackingId
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Order tracking information
+
+  /carts:
+    post:
+      tags: [Cart]
+      summary: Add item to cart
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                productId:
+                  type: integer
+      responses:
+        '200':
+          description: Item added to cart
+    get:
+      tags: [Cart]
+      summary: Get cart items
+      responses:
+        '200':
+          description: List of cart items
+
+  /carts/{id}:
+    patch:
+      tags: [Cart]
+      summary: Update cart item
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Cart item updated
+    delete:
+      tags: [Cart]
+      summary: Remove item from cart
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Item removed from cart
+
+  /agents:
+    get:
+      tags: [Agents]
+      summary: Get all agents
+      responses:
+        '200':
+          description: List of agents
+    post:
+      tags: [Agents]
+      summary: Create a new agent
+      responses:
+        '201':
+          description: Agent created successfully
+
+  /agents/{id}:
+    get:
+      tags: [Agents]
+      summary: Get a specific agent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Agent details
+    patch:
+      tags: [Agents]
+      summary: Update an agent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Agent updated successfully
+    delete:
+      tags: [Agents]
+      summary: Delete an agent
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: integer
+      responses:
+        '200':
+          description: Agent deleted successfully
+
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        firstName:
+          type: string
+        lastName:
+          type: string
+        email:
+          type: string
+          format: email
+        role:
+          type: string
+          enum: [user, admin]
+
+    Product:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: number
+          format: float
+        category:
+          type: string
+        image:
+          type: string
+          format: uri
+
+    Review:
+      type: object
+      properties:
+        id:
+          type: integer
+        description:
+          type: string
+        rating:
+          type: number
+          format: float
+        productId:
+          type: integer
+        userId:
+          type: integer
+
+    Order:
+      type: object
+      properties:
+        id:
+          type: integer
+        status:
+          type: string
+        total:
+          type: number
+          format: float
+        userId:
+          type: integer
+
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
