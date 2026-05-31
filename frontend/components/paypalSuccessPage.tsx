@@ -1,11 +1,15 @@
 "use client";
+
 export const dynamic = "force-dynamic";
 
-import { useEffect, useState } from "react";
+import { Suspense, useEffect, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import axios from "axios";
 
-export default function PayPalSuccessPage() {
+/* ================================
+   INNER COMPONENT (uses hook)
+================================ */
+function PayPalSuccessContent() {
   const router = useRouter();
   const searchParams = useSearchParams();
 
@@ -22,25 +26,20 @@ export default function PayPalSuccessPage() {
           setLoading(false);
           return;
         }
-console.log(orderId)
+
+        console.log(orderId);
+
         await axios.post(
           `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/orders/capture`,
           { orderId },
-          {
-            withCredentials: true,
-          }
+          { withCredentials: true }
         );
 
         setTimeout(() => {
           router.push("/orders");
         }, 2500);
-
       } catch (err: any) {
-        console.log(
-          "ORDER ERROR:",
-          err?.response?.data || err
-        );
-
+        console.log("ORDER ERROR:", err?.response?.data || err);
         setError("Failed to create order.");
       } finally {
         setLoading(false);
@@ -52,7 +51,6 @@ console.log(orderId)
 
   return (
     <main className="min-h-screen bg-[#f7f3ee] flex items-center justify-center px-6">
-
       <div className="bg-white max-w-lg w-full rounded-3xl border border-[#ece7df] p-10 text-center">
 
         {loading ? (
@@ -73,15 +71,11 @@ console.log(orderId)
               Something Went Wrong
             </h1>
 
-            <p className="text-gray-600">
-              {error}
-            </p>
+            <p className="text-gray-600">{error}</p>
           </>
         ) : (
           <>
-            <div className="text-6xl mb-6">
-              ✓
-            </div>
+            <div className="text-6xl mb-6">✓</div>
 
             <h1 className="text-3xl font-serif text-[#2d2a26] mb-4">
               Order Created Successfully
@@ -94,7 +88,17 @@ console.log(orderId)
         )}
 
       </div>
-
     </main>
+  );
+}
+
+/* ================================
+   WRAPPER WITH SUSPENSE
+================================ */
+export default function PayPalSuccessPage() {
+  return (
+    <Suspense fallback={<div>Loading...</div>}>
+      <PayPalSuccessContent />
+    </Suspense>
   );
 }
