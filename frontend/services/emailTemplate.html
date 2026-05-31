@@ -1,0 +1,128 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <title>Reset Your Password</title>
+    <style>
+      body {
+        margin: 0;
+        padding: 0;
+        background-color: #f7f3ee;
+        font-family: Georgia, serif;
+        color: #111;
+      }
+
+      .container {
+        max-width: 600px;
+        margin: 40px auto;
+        background: #ffffff;
+        border: 1px solid #e5e5e5;
+        padding: 40px;
+      }
+
+      .logo {
+        text-align: center;
+        font-size: 28px;
+        letter-spacing: 6px;
+        font-weight: 500;
+      }
+
+      .sub {
+        text-align: center;
+        font-size: 12px;
+        letter-spacing: 4px;
+        color: #777;
+        margin-top: 8px;
+      }
+
+      .divider {
+        margin: 30px 0;
+        height: 1px;
+        background: #eee;
+      }
+
+      h1 {
+        font-size: 28px;
+        font-weight: 400;
+        text-align: center;
+        margin-bottom: 20px;
+      }
+
+      p {
+        font-size: 14px;
+        line-height: 1.8;
+        text-align: center;
+        color: #444;
+      }
+
+      .button-wrapper {
+        text-align: center;
+        margin-top: 30px;
+      }
+
+      .button {
+        display: inline-block;
+        padding: 14px 28px;
+        background: #111;
+        color: #fff;
+        text-decoration: none;
+        font-size: 12px;
+        letter-spacing: 3px;
+        text-transform: uppercase;
+      }
+
+      .footer {
+        margin-top: 40px;
+        font-size: 11px;
+        text-align: center;
+        color: #999;
+      }
+
+      .small {
+        font-size: 11px;
+        color: #888;
+        word-break: break-all;
+        margin-top: 20px;
+      }
+    </style>
+  </head>
+
+  <body>
+    <div class="container">
+
+      <!-- LOGO -->
+      <div class="logo">MELANO</div>
+      <div class="sub">ITALIAN FASHION HOUSE</div>
+
+      <div class="divider"></div>
+
+      <!-- CONTENT -->
+      <h1>Reset Your Password</h1>
+
+      <p>
+        We received a request to reset your password.
+        If this was you, click the button below to continue.
+      </p>
+
+      <div class="button-wrapper">
+        <a href="/resetPassword" class="button">
+          Reset Password
+        </a>
+      </div>
+
+      <p class="small">
+        If the button doesn’t work, copy and paste this link:
+        <br />
+        {{resetUrl}}
+      </p>
+
+      <div class="divider"></div>
+
+      <p class="footer">
+        If you didn’t request this, you can safely ignore this email.<br />
+        Your account is still secure.
+      </p>
+
+    </div>
+  </body>
+</html>
