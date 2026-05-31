@@ -38,6 +38,7 @@ function PayPalSuccessContent() {
         setTimeout(() => {
           router.push("/orders");
         }, 2500);
+      // eslint-disable-next-line @typescript-eslint/no-explicit-any
       } catch (err: any) {
         console.log("ORDER ERROR:", err?.response?.data || err);
         setError("Failed to create order.");

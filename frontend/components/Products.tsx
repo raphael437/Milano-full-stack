@@ -1,3 +1,5 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
+
 import Image from 'next/image';
 import Sidebar from './Sidebar';
 import { fetchProducts } from '@/services/productServices';

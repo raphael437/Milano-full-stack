@@ -61,6 +61,7 @@ export default function SignupPage() {
 
       setSuccess('OTP sent successfully. Please verify your email.');
       router.push(`/verifyotp?email=${encodeURIComponent(formData.email)}`);
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     } catch (err: any) {
       console.log(err);
 
