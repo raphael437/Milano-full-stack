@@ -1,11 +1,32 @@
+'use client'
 /* eslint-disable @typescript-eslint/no-explicit-any */
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
 import { getBags } from '@/services/productServices';
 
-export default async function BagsPage() {
-  const products = await getBags();
+export default  function BagsPage() {
+ const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    const fetchBags = async () => {
+      try {
+        setLoading(true);
+        const data = await getBags();
+        setProducts(data);
+      } catch (err) {
+        console.log(err);
+        setError('Failed to load bags');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchBags();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f7f3ee] flex">
