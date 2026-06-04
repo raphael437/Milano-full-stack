@@ -12,15 +12,19 @@ const sequelize = new Sequelize(
     port: process.env.DB_PORT,
     dialect: 'mysql',
     logging: false,
+    
+    dialectModule: require('mysql2'),
+    
     dialectOptions: {
       ssl: {
         rejectUnauthorized: false,
       },
     },
     pool: {
-      max: 1,
+      max: 1,        
       min: 0,
       idle: 10000,
+      acquire: 30000,
     },
   }
 );
