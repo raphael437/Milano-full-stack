@@ -1,16 +1,37 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+'use client'
 import Image from 'next/image';
 import Sidebar from './Sidebar';
 import { fetchProducts } from '@/services/productServices';
 import AddToCartButton from '@/components/AddToCart';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 // export const dynamic = 'force-dynamic';
 
-export default async function Products() {
-  const products = await fetchProducts();
+export default  function Products() {
+  //const products = await fetchProducts();
+    const [products, setProducts] = useState<any[]>([]);
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+   useEffect(() => {
+    const getProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await fetchProducts();
+        setProducts(data);
+      } catch (err) {
+        console.log(err);
+        setError('Failed to load bags');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getProducts();
+  }, []);
   return (
     <div className="min-h-screen bg-[#f7f3ee] flex">
 
