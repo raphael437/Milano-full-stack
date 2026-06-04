@@ -15,7 +15,6 @@ const PORT = process.env.PORT || 4000;
 const syncDatabase = async () => {
   try {
     await sequelize.query('SET FOREIGN_KEY_CHECKS = 0');
-    await sequelize.sync(); // Changed to false to preserve data
     await sequelize.query('SET FOREIGN_KEY_CHECKS = 1');
 
     console.log('Database connected successfully');
