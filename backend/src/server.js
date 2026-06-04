@@ -3,17 +3,9 @@ dotenv.config({ path: './config.env' });
 
 const app = require('./app');
 const { createServer } = require('http');
-const { Server } = require('socket.io');
 const sequelize = require('./config/db');
 
 const server = createServer(app);
-const io = new Server(server, {
-  cors: {
-    origin: process.env.FRONTEND_URL || '*',
-    methods: ['GET', 'POST'],
-    credentials: true,
-  },
-});
 
 
 
