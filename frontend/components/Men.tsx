@@ -1,13 +1,35 @@
+'use client'
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import Image from 'next/image';
 import Link from 'next/link';
+import { useEffect, useState } from 'react';
 
 import { getMenProductByCategory } from '@/services/productServices';
 
 import Sidebar from './Sidebar';
 
-export default async function Men() {
-  const products = await getMenProductByCategory();
+export default  function Men() {
+  const [products, setProducts] = useState<any[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+   useEffect(() => {
+    const getMen = async () => {
+      try {
+        setLoading(true);
+        const data = await getMenProductByCategory();
+        setProducts(data);
+      } catch (err) {
+        console.log(err);
+        setError('Failed to load bags');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getMen();
+  }, []);
+
   return (
     <div className="min-h-screen bg-[#f7f3ee] flex">
       {/* SIDEBAR */}
