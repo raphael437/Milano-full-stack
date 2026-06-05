@@ -36,7 +36,7 @@ const passport = require('./config/passport');
 app.use(helmet());
 app.use(
   cors({
-    origin: ['http://localhost:3000'],
+    origin: ['http://localhost:3000','https://milano-full-stack-front.vercel.app'],
     credentials: true,
   }),
 );
