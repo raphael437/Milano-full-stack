@@ -1,13 +1,34 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+'use client'
 import Image from 'next/image';
 import Link from 'next/link';
-
+import { useEffect, useState } from 'react';
 import Sidebar from './Sidebar';
 import { getWomenProductByCategory } from '@/services/productServices';
 
-export default async function Women() {
-  const products = await getWomenProductByCategory();
+export default  function Women() {
+  //const products = await getWomenProductByCategory();
+   const [products, setProducts] = useState<any[]>([]);
+
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+   useEffect(() => {
+    const getProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await getWomenProductByCategory();
+        setProducts(data);
+      } catch (err) {
+        console.log(err);
+        setError('Failed to load bags');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getProducts();
+  }, []);
 
   return (
     <div className="min-h-screen bg-[#f7f3ee] flex">
