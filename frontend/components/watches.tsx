@@ -1,13 +1,34 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
-
+'use client'
+import { useEffect, useState } from 'react';
 import Image from 'next/image';
 import Link from 'next/link';
 import Sidebar from './Sidebar';
 import { getWatches } from '@/services/productServices';
 
-export default async function WatchPage() {
-  const products = await getWatches();
+export default  function WatchPage() {
+ // const products = await getWatches();
+    const [products, setProducts] = useState<any[]>([]);
 
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState('');
+
+   useEffect(() => {
+    const getProducts = async () => {
+      try {
+        setLoading(true);
+        const data = await getWatches();
+        setProducts(data);
+      } catch (err) {
+        console.log(err);
+        setError('Failed to load bags');
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    getProducts();
+  }, []);
   return (
     <div className="min-h-screen bg-[#f7f3ee] flex">
       {/* SIDEBAR */}
