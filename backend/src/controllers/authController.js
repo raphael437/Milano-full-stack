@@ -27,30 +27,33 @@ const sendTokens = (user, statusCode, res) => {
   const token = signAccessToken(user.id);
   const refreshToken = signRefreshToken(user.id);
   // Access token cookie options
-  const accessTokenCookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-      sameSite: "lax",
+ const accessTokenCookieOptions = {
+  expires: new Date(
+    Date.now() +
+      process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+  ),
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production'
+    ? 'none'
+    : 'lax',
+};
 
-  };
-
-  // Refresh token cookie options (longer expiration)
-  const refreshTokenCookieOptions = {
-    expires: new Date(
-      Date.now() +
-        process.env.REFRESH_TOKEN_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
-    httpOnly: true,
-      sameSite: "lax",
-
-  };
-
-  if (process.env.NODE_ENV === 'production') {
-    accessTokenCookieOptions.secure = true;
-    refreshTokenCookieOptions.secure = true;
-  }
+const refreshTokenCookieOptions = {
+  expires: new Date(
+    Date.now() +
+      process.env.REFRESH_TOKEN_COOKIE_EXPIRES_IN *
+        24 *
+        60 *
+        60 *
+        1000
+  ),
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production'
+    ? 'none'
+    : 'lax',
+};
 
   res.cookie('jwt', token, accessTokenCookieOptions);
   res.cookie('refreshjwt', refreshToken, refreshTokenCookieOptions);
