@@ -27,33 +27,30 @@ const sendTokens = (user, statusCode, res) => {
   const token = signAccessToken(user.id);
   const refreshToken = signRefreshToken(user.id);
   // Access token cookie options
- const accessTokenCookieOptions = {
-  expires: new Date(
-    Date.now() +
-      process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-  ),
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production'
-    ? 'none'
-    : 'lax',
-};
+  const accessTokenCookieOptions = {
+    expires: new Date(
+      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+      sameSite: "lax",
 
-const refreshTokenCookieOptions = {
-  expires: new Date(
-    Date.now() +
-      process.env.REFRESH_TOKEN_COOKIE_EXPIRES_IN *
-        24 *
-        60 *
-        60 *
-        1000
-  ),
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production'
-    ? 'none'
-    : 'lax',
-};
+  };
+
+  // Refresh token cookie options (longer expiration)
+  const refreshTokenCookieOptions = {
+    expires: new Date(
+      Date.now() +
+        process.env.REFRESH_TOKEN_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
+    ),
+    httpOnly: true,
+      sameSite: "lax",
+
+  };
+
+  if (process.env.NODE_ENV === 'production') {
+    accessTokenCookieOptions.secure = true;
+    refreshTokenCookieOptions.secure = true;
+  }
 
   res.cookie('jwt', token, accessTokenCookieOptions);
   res.cookie('refreshjwt', refreshToken, refreshTokenCookieOptions);
@@ -336,15 +333,17 @@ exports.googleAuthCallback = (req, res) => {
   const token = signAccessToken(req.user.id);
   const refreshToken = signRefreshToken(req.user.id);
 
-  const cookieOptions = {
-  httpOnly: true,
-  secure: process.env.NODE_ENV === 'production',
-  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
-};
+  res.cookie('jwt', token, {
+    httpOnly: true,
+    sameSite: 'lax',
+      secure: false,
+  });
 
-res.cookie('jwt', token, cookieOptions);
-
-res.cookie('refreshjwt', refreshToken, cookieOptions);
+  res.cookie('refreshjwt', refreshToken, {
+    httpOnly: true,
+    sameSite: 'lax',
+      secure: false,
+  });
 
 return res.redirect(`${process.env.FRONTEND_URL}/me`);
 };
@@ -376,6 +375,7 @@ exports.verifyOtp = catchAsync(async (req, res, next) => {
 ) {
   return next(new AppError("Invalid or expired OTP", 400));
 }
+  sendTokens(user, 200, res);
 console.log(otp);
   // Clear OTP and mark user as verified
   user.otpCode = null;
