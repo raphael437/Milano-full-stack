@@ -51,10 +51,10 @@ const sendTokens = (user, statusCode, res) => {
     accessTokenCookieOptions.secure = true;
     refreshTokenCookieOptions.secure = true;
   }
-
+/*
   res.cookie('jwt', token, accessTokenCookieOptions);
   res.cookie('refreshjwt', refreshToken, refreshTokenCookieOptions);
-
+*/
   //remove the password from output
   user.password = undefined;
   res.status(statusCode).json({
