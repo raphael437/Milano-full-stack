@@ -375,7 +375,6 @@ exports.verifyOtp = catchAsync(async (req, res, next) => {
 ) {
   return next(new AppError("Invalid or expired OTP", 400));
 }
-  sendTokens(user, 200, res);
 console.log(otp);
   // Clear OTP and mark user as verified
   user.otpCode = null;
