@@ -333,17 +333,15 @@ exports.googleAuthCallback = (req, res) => {
   const token = signAccessToken(req.user.id);
   const refreshToken = signRefreshToken(req.user.id);
 
-  res.cookie('jwt', token, {
-    httpOnly: true,
-    sameSite: 'lax',
-      secure: false,
-  });
+  const cookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === 'production',
+  sameSite: process.env.NODE_ENV === 'production' ? 'none' : 'lax',
+};
 
-  res.cookie('refreshjwt', refreshToken, {
-    httpOnly: true,
-    sameSite: 'lax',
-      secure: false,
-  });
+res.cookie('jwt', token, cookieOptions);
+
+res.cookie('refreshjwt', refreshToken, cookieOptions);
 
 return res.redirect(`${process.env.FRONTEND_URL}/me`);
 };
