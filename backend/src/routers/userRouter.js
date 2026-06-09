@@ -30,11 +30,10 @@ router.get(
   }),
   authController.googleAuthCallback
 );
-router.get('/me', userController.me);
 
 // Protected routes
 router.use(authController.protect);
-
+router.get('/me', userController.me);
 router.patch('/updateMyPassword', authController.updatePassword);
 router.patch('/updateMe', userController.updateMe);
 
