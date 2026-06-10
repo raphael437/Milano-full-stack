@@ -33,6 +33,7 @@ const fetchProducts = async () => {
   try {
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products`,
+       
     );
 
     return response.data.data;
@@ -115,6 +116,10 @@ const loginUser = async (formData: LoginData) => {
   try {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/login`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         email: formData.email,
         password: formData.password,
@@ -135,6 +140,10 @@ const signupUser = async (formData: SignupData) => {
   try {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/signup`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         firstName: formData.firstName,
         lastName: formData.lastName,
@@ -159,6 +168,10 @@ const verifyOtp = async (formData: VerifyOtpData) => {
   try {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/verifyotp`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         email: formData.email,
         otp: formData.otp,
@@ -183,6 +196,10 @@ const forgetPassword = async (email: string) => {
   try {
     const response = await axios.post(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/forgetPassword`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       { email },
     );
 
@@ -201,6 +218,10 @@ const resetPassword = async (
   try {
     const response = await axios.patch(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/resetPassword/${token}`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         password,
         passwordConfirm,
@@ -246,6 +267,10 @@ const getMe = async () => {
   try {
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/me`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         withCredentials: true,
       }
@@ -269,6 +294,10 @@ const logOut = async () => {
   try {
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/logout`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         withCredentials: true, // IMPORTANT (JWT cookie)
       },
@@ -286,6 +315,10 @@ const addToCart = async (productId: number, quantity = 1) => {
   try {
     const res = await axios.post(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/carts`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         productId,
         quantity,
@@ -311,6 +344,10 @@ const getCart = async () => {
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/carts`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         withCredentials: true,
 
@@ -334,6 +371,10 @@ const getCart = async () => {
 const updateCartItem = async (itemId: number, quantity: number) => {
   const res = await axios.patch(
     `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/carts/${itemId}`,
+     {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     { quantity },
     {
       withCredentials: true,
@@ -351,6 +392,10 @@ const updateCartItem = async (itemId: number, quantity: number) => {
 const removeCartItem = async (itemId: number) => {
   const res = await axios.delete(
     `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/carts/${itemId}`,
+     {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     {
       withCredentials: true,
       headers: {
@@ -370,6 +415,10 @@ const trackOrder = async (
 ) => {
   const res = await axios.get(
     `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/orders/track/${trackingNumber}`,
+     {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
     {
       withCredentials: true,
       headers: {
@@ -387,6 +436,10 @@ const getUserOrders = async () => {
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/orders/user-orders`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         withCredentials: true,
         headers: {
@@ -408,6 +461,10 @@ const getOrderDetails = async (orderId: number) => {
   try {
     const res = await axios.get(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/orders/${orderId}`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         withCredentials: true,
         headers: {
@@ -438,6 +495,10 @@ const addProduct = async (productData: {
   try {
     const res = await axios.post(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       productData,
       {
         withCredentials: true,
@@ -473,6 +534,10 @@ const updateProduct = async (
   try {
     const res = await axios.patch(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products/${productId}`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       updatedData,
       {
         withCredentials: true,
@@ -499,6 +564,10 @@ const deleteProduct = async (
   try {
     const res = await axios.delete(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products/${productId}`,
+       {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
       {
         withCredentials: true,
         headers: {
