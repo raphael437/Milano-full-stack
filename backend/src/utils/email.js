@@ -10,35 +10,19 @@ module.exports = class Email {
 
   // Create transporter based on environment
   createTransporter() {
-    if (process.env.NODE_ENV === 'production') {
-      // Use SendGrid for production
-      return nodemailer.createTransport({
-        host: 'smtp.sendgrid.net',
-        port: 587,
-        secure: false,
-        auth: {
-          user: 'apikey',
-          pass: process.env.SENDGRID_API_KEY,
-        },
-        connectionTimeout: 5000,
-        greetingTimeout: 5000,
-        socketTimeout: 10000,
-      });
-    } else {
-      // Use Mailtrap for development
-      return nodemailer.createTransport({
-        host: process.env.MAILTRAP_HOST||'sandbox.smtp.mailtrap.io',
-        port: process.env.MAILTRAP_PORT || 587,
-        secure: false,
-        auth: {
-          user: process.env.MAILTRAP_USERNAME,
-          pass: process.env.MAILTRAP_PASSWORD,
-        },
-          tls: {
-    rejectUnauthorized: false,
-  },
-      });
-    }
+    // Use Mailtrap for development
+    return nodemailer.createTransport({
+      host: process.env.MAILTRAP_HOST || 'sandbox.smtp.mailtrap.io',
+      port: process.env.MAILTRAP_PORT || 587,
+      secure: false,
+      auth: {
+        user: process.env.MAILTRAP_USERNAME,
+        pass: process.env.MAILTRAP_PASSWORD,
+      },
+      tls: {
+        rejectUnauthorized: false,
+      },
+    });
   }
 
   // Define the email options
