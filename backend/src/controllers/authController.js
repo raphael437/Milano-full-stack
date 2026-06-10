@@ -32,7 +32,7 @@ const sendTokens = (user, statusCode, res) => {
       Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
-      sameSite: "lax",
+  sameSite: 'none',  
 
   };
 
@@ -43,7 +43,8 @@ const sendTokens = (user, statusCode, res) => {
         process.env.REFRESH_TOKEN_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
     httpOnly: true,
-      sameSite: "lax",
+        sameSite: 'none',   
+
 
   };
 
@@ -335,13 +336,13 @@ exports.googleAuthCallback = (req, res) => {
 
   res.cookie('jwt', token, {
     httpOnly: true,
-    sameSite: 'lax',
+  sameSite: 'none',   
       secure: false,
   });
 
   res.cookie('refreshjwt', refreshToken, {
     httpOnly: true,
-    sameSite: 'lax',
+  sameSite: 'none',   
       secure: false,
   });
 
