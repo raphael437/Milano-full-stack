@@ -246,9 +246,9 @@ const getMe = async () => {
   try {
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/me`,
-       
-    withCredentials: true,
-  }
+      {
+        withCredentials: true,
+      }
     );
 
     return response.data.data;
