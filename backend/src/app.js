@@ -33,13 +33,12 @@ const cartRouter = require('./routers/cartRouter');
 const passport = require('./config/passport');
 
 // 1. Security middleware first
-app.use(helmet());
-app.use(
-  cors({
-    origin: ['http://localhost:3000','https://milano-full-stack-front.vercel.app'],
-    credentials: true,
-  }),
-);
+const cors = require('cors');
+app.use(cors({
+  origin: 'https://milano-full-stack-front.vercel.app', // no trailing slash
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS']
+}));
 // 2. Rate limiting (should be early in the chain)
 const limiter = rateLimiter({
   max: 100,
