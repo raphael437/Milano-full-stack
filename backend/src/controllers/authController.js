@@ -21,37 +21,31 @@ const signRefreshToken = id => {
     expiresIn: process.env.REFRESH_TOKEN_EXPIRES_IN,
   });
 };
-
+const isProduction = process.env.NODE_ENV === 'production';
+const cookieDomain = isProduction ? '.vercel.app' : undefined;
 //send the token via cookie
 const sendTokens = (user, statusCode, res) => {
   const token = signAccessToken(user.id);
   const refreshToken = signRefreshToken(user.id);
   // Access token cookie options
-  const accessTokenCookieOptions = {
-    expires: new Date(
-      Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
+ const accessTokenCookieOptions = {
+    expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
     httpOnly: true,
-  sameSite: 'none',  
-
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
+    domain: cookieDomain,
   };
+
 
   // Refresh token cookie options (longer expiration)
-  const refreshTokenCookieOptions = {
-    expires: new Date(
-      Date.now() +
-        process.env.REFRESH_TOKEN_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-    ),
+ const refreshTokenCookieOptions = {
+    expires: new Date(Date.now() + process.env.REFRESH_TOKEN_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
     httpOnly: true,
-        sameSite: 'none',   
-
-
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
+    domain: cookieDomain,
   };
 
-  if (process.env.NODE_ENV === 'production') {
-    accessTokenCookieOptions.secure = true;
-    refreshTokenCookieOptions.secure = true;
-  }
 
   res.cookie('jwt', token, accessTokenCookieOptions);
   res.cookie('refreshjwt', refreshToken, refreshTokenCookieOptions);
@@ -298,14 +292,12 @@ exports.refreshToken = catchAsync(async (req, res, next) => {
 
   // Set cookies with extended expiration (updated to match sendTokens format)
  const accessTokenCookieOptions = {
-  expires: new Date(
-    Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
-  ),
+  expires: new Date(Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000),
   httpOnly: true,
-  sameSite: "none",
-  secure: true, 
+  sameSite: isProduction ? 'none' : 'lax',
+  secure: isProduction,
+  domain: cookieDomain,
 };
-
   const refreshTokenCookieOptions = {
     expires: new Date(
       Date.now() +
@@ -316,11 +308,7 @@ exports.refreshToken = catchAsync(async (req, res, next) => {
      secure: true,   
   };
 
-  if (process.env.NODE_ENV === 'production') {
-    accessTokenCookieOptions.secure = true;
-    refreshTokenCookieOptions.secure = true;
-  }
-
+ 
   res.cookie('jwt', newAccessToken, accessTokenCookieOptions);
   res.cookie('refreshjwt', newRefreshToken, refreshTokenCookieOptions);
 
@@ -334,19 +322,17 @@ exports.googleAuthCallback = (req, res) => {
   const token = signAccessToken(req.user.id);
   const refreshToken = signRefreshToken(req.user.id);
 
-  res.cookie('jwt', token, {
+  const cookieOptions = {
     httpOnly: true,
-  sameSite: 'none',   
-      secure: false,
-  });
+    sameSite: isProduction ? 'none' : 'lax',
+    secure: isProduction,
+    domain: cookieDomain,
+  };
 
-  res.cookie('refreshjwt', refreshToken, {
-    httpOnly: true,
-  sameSite: 'none',   
-      secure: false,
-  });
+  res.cookie('jwt', token, { ...cookieOptions, expires: new Date(Date.now() + 30 * 24 * 60 * 60 * 1000) });
+  res.cookie('refreshjwt', refreshToken, { ...cookieOptions, expires: new Date(Date.now() + 90 * 24 * 60 * 60 * 1000) });
 
-return res.redirect(`${process.env.FRONTEND_URL}/me`);
+  return res.redirect(`${process.env.FRONTEND_URL}/me`);
 };
 exports.linkGoogleToCurrentUser = catchAsync(async (req, res, next) => {
   if (!req.user) {
