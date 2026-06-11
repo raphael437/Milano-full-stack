@@ -51,9 +51,10 @@ export default function Header() {
   };
 
   // CHECK AUTH
-  useEffect(() => {
+  // CHECK AUTH – only if token exists
+useEffect(() => {
   const checkUser = async () => {
-    // If there's no token, don't even try to fetch the user
+    // 🔥 Do not call API if no access token
     const token = localStorage.getItem('accessToken');
     if (!token) {
       setUser(null);
@@ -63,10 +64,13 @@ export default function Header() {
 
     try {
       const data = await getMe();
-      setUser(data.user); // adjust based on your actual return shape
+      // Backend returns { user: {...} } inside data
+      setUser(data.user);
     } catch (error) {
       setUser(null);
-      // Do NOT redirect here – let the component handle it gracefully
+      // If token is invalid, remove it to avoid repeated attempts
+      localStorage.removeItem('accessToken');
+      localStorage.removeItem('refreshToken');
     } finally {
       setLoading(false);
     }
