@@ -147,14 +147,13 @@ exports.createOrder = catchAsync(async (req, res, next) => {
         },
       ],
 
-      application_context: {
-        brand_name: "Milano Store",
-        landing_page: "LOGIN",
-        user_action: "PAY_NOW",
-
-         return_url: `${process.env.FRONTEND_URL}/paypal-success`,
-          cancel_url: `${process.env.FRONTEND_URL}/payment-failed`,
-      },
+     application_context: {
+  brand_name: "Milano Store",
+  landing_page: "LOGIN",
+  user_action: "PAY_NOW",
+  return_url: `${process.env.FRONTEND_URL}/paypal-success`,
+  cancel_url: `${process.env.FRONTEND_URL}/paypal-cancel`,
+},
     },
   });
 
