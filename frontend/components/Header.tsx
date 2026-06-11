@@ -52,20 +52,28 @@ export default function Header() {
 
   // CHECK AUTH
   useEffect(() => {
-    const checkUser = async () => {
-      try {
-        const data = await getMe();
+  const checkUser = async () => {
+    // If there's no token, don't even try to fetch the user
+    const token = localStorage.getItem('accessToken');
+    if (!token) {
+      setUser(null);
+      setLoading(false);
+      return;
+    }
 
-        setUser(data);
-      } catch (error) {
-        setUser(null);
-      } finally {
-        setLoading(false);
-      }
-    };
+    try {
+      const data = await getMe();
+      setUser(data.user); // adjust based on your actual return shape
+    } catch (error) {
+      setUser(null);
+      // Do NOT redirect here – let the component handle it gracefully
+    } finally {
+      setLoading(false);
+    }
+  };
 
-    checkUser();
-  }, []);
+  checkUser();
+}, []);
 
   // CLOSE DESKTOP DROPDOWNS ON OUTSIDE CLICK
   useEffect(() => {
