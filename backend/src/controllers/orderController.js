@@ -68,6 +68,7 @@ const mockTmGetStatus = async (trackingNumber, carrier = 'dhl') => {
 
 // --------------------- CREATE ORDER (ONLY FROM CART) ---------------------
 exports.createOrder = catchAsync(async (req, res, next) => {
+
   const cart = await Cart.findOne({
     where: { userId: req.user.id },
     include: [
@@ -97,11 +98,14 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     !shipAddress1 ||
     !phone
   ) {
-    return next(new AppError("Please fill all shipping fields", 400));
+    return next(
+      new AppError("Please fill all shipping fields", 400)
+    );
   }
 
   // TOTAL
   let total = 0;
+
   cart.CartItems.forEach((item) => {
     total += item.Product.price * item.quantity;
   });
@@ -123,12 +127,6 @@ exports.createOrder = catchAsync(async (req, res, next) => {
 
   const accessToken = tokenResponse.data.access_token;
 
-  // USE ENVIRONMENT VARIABLE FOR FRONTEND URL
-  const frontendUrl = process.env.FRONTEND_URL;
-  if (!frontendUrl) {
-    return next(new AppError("FRONTEND_URL environment variable not set", 500));
-  }
-
   // CREATE PAYPAL ORDER
   const paypalResponse = await axios({
     url: `${process.env.PAYPAL_BASE_URL}/v2/checkout/orders`,
@@ -139,6 +137,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
     },
     data: {
       intent: "CAPTURE",
+
       purchase_units: [
         {
           amount: {
@@ -147,12 +146,17 @@ exports.createOrder = catchAsync(async (req, res, next) => {
           },
         },
       ],
+
       application_context: {
         brand_name: "Milano Store",
         landing_page: "LOGIN",
         user_action: "PAY_NOW",
-        return_url: `${frontendUrl}/paypal-success`,   // ← fixed
-        cancel_url: `${frontendUrl}/paypal-cancel`,    // ← fixed
+
+        return_url:
+          "http://localhost:3000/paypal-success",
+
+        cancel_url:
+          "http://localhost:3000/paypal-cancel",
       },
     },
   });
@@ -168,7 +172,7 @@ exports.createOrder = catchAsync(async (req, res, next) => {
 });
 // --------------------- CAPTURE PAYPAL PAYMENT ---------------------
 exports.capturePayment = catchAsync(async (req, res, next) => {
-  const { orderId, shipCountry, shipCity, shipPostalCode, shipAddress1, phone } = req.body;
+  const { orderId } = req.body;
 
   if (!orderId) {
     return next(new AppError("PayPal Order ID is required", 400));
@@ -199,7 +203,10 @@ exports.capturePayment = catchAsync(async (req, res, next) => {
     },
   });
 
-  // Get cart and items
+  // ================================
+  
+  // ================================
+
   const cart = await Cart.findOne({
     where: { userId: req.user.id },
     include: [{ model: CartItem, include: [Product] }],
@@ -214,26 +221,28 @@ exports.capturePayment = catchAsync(async (req, res, next) => {
     total += item.Product.price * item.quantity;
   });
 
+  // 1. Generate tracking number
   const trackingNumber = generateTrackingNumber();
 
-  // Use provided shipping data or fallback to dummy (you should require them)
-  const customerPhone = phone || "0000000000";
-  const shippingAddress = shipAddress1 ? 
-    `${shipAddress1}, ${shipCity}, ${shipCountry} ${shipPostalCode}` : 
-    "No address provided";
-
+  // 2. Create order
   const order = await Order.create({
-    userId: req.user.id,
-    customerName: `${req.user.firstName} ${req.user.lastName}`,
-    customerPhone,
-    shippingAddress,   // optional – you can add this column to Order model
-    amount: total,
-    totalPrice: total,
-    status: "paid",
-    trackingNumber,
-  });
+  userId: req.user.id,
 
-  // Create order items
+  customerName:
+    `${req.user.firstName} ${req.user.lastName}`,
+
+  customerPhone: "0000000000",
+
+  amount: total,
+
+  totalPrice: total,
+
+  status: "paid",
+
+  trackingNumber,
+});
+
+  // 3. Create order items
   await Promise.all(
     cart.CartItems.map(item =>
       OrderItem.create({
@@ -245,7 +254,7 @@ exports.capturePayment = catchAsync(async (req, res, next) => {
     )
   );
 
-  // Clear cart
+  // 4. Clear cart
   await CartItem.destroy({ where: { cartId: cart.id } });
 
   res.status(200).json({
