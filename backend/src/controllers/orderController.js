@@ -152,10 +152,8 @@ exports.createOrder = catchAsync(async (req, res, next) => {
         landing_page: "LOGIN",
         user_action: "PAY_NOW",
 
-        return_url: `${https://milano-full-stack-front.vercel.app}/paypal-success`,   // ← fixed
-
-        cancel_url:
-         `${https://milano-full-stack-front.vercel.app}/payment-failed`,
+        return_url: `${FRONTEND_URL}/paypal-success`,   
+        cancel_url: `${FRONTEND_URL}/payment-failed`,    
       },
     },
   });
