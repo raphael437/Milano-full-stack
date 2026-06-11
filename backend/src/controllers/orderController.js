@@ -152,11 +152,10 @@ exports.createOrder = catchAsync(async (req, res, next) => {
         landing_page: "LOGIN",
         user_action: "PAY_NOW",
 
-        return_url:
-          "http://localhost:3000/paypal-success",
+        return_url: `${FRONTEND_URL}/paypal-success`,   // ← fixed
 
         cancel_url:
-          "http://localhost:3000/paypal-cancel",
+         `${FRONTEND_URL}/payment-failed`,
       },
     },
   });
