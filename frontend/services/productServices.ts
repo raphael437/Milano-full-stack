@@ -26,15 +26,84 @@ type VerifyOtpData = {
 };
 
 /* =========================================================
+   AXIOS SETUP & INTERCEPTORS
+========================================================= */
+
+// Create an axios instance with base config
+const apiClient = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_BACK_API_URL,
+  withCredentials: true, // still send cookies (for dev or fallback)
+});
+
+// Request interceptor: add Authorization header if token exists
+apiClient.interceptors.request.use(
+  (config) => {
+    const token = localStorage.getItem('accessToken');
+    if (token) {
+      config.headers.Authorization = `Bearer ${token}`;
+    }
+    return config;
+  },
+  (error) => Promise.reject(error)
+);
+
+// Response interceptor: handle 401 and token refresh
+apiClient.interceptors.response.use(
+  (response) => response,
+  async (error) => {
+    const originalRequest = error.config;
+    if (error.response?.status === 401 && !originalRequest._retry) {
+      originalRequest._retry = true;
+      try {
+        const refreshToken = localStorage.getItem('refreshToken');
+        if (!refreshToken) throw new Error('No refresh token');
+
+        // Call refresh endpoint (sends refresh token in body)
+        const res = await axios.post(
+          `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/refreshToken`,
+          { refreshToken },
+          { withCredentials: true }
+        );
+
+        if (res.data.token) {
+          localStorage.setItem('accessToken', res.data.token);
+          localStorage.setItem('refreshToken', res.data.refreshToken);
+          originalRequest.headers.Authorization = `Bearer ${res.data.token}`;
+          return apiClient(originalRequest);
+        }
+      } catch (refreshError) {
+        // Refresh failed – log out user
+        localStorage.removeItem('accessToken');
+        localStorage.removeItem('refreshToken');
+        window.location.href = '/login';
+        return Promise.reject(refreshError);
+      }
+    }
+    return Promise.reject(error);
+  }
+);
+
+/* =========================================================
+   TOKEN STORAGE HELPERS
+========================================================= */
+
+const storeTokens = (data: any) => {
+  if (data.token) localStorage.setItem('accessToken', data.token);
+  if (data.refreshToken) localStorage.setItem('refreshToken', data.refreshToken);
+};
+
+const clearTokens = () => {
+  localStorage.removeItem('accessToken');
+  localStorage.removeItem('refreshToken');
+};
+
+/* =========================================================
    PRODUCTS
 ========================================================= */
 
 const fetchProducts = async () => {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products`,
-    );
-
+    const response = await apiClient.get('/api/v1/products');
     return response.data.data;
   } catch (error) {
     console.log(error);
@@ -44,10 +113,7 @@ const fetchProducts = async () => {
 
 const fetchProduct = async (id: string) => {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products/${id}`,
-    );
-
+    const response = await apiClient.get(`/api/v1/products/${id}`);
     return response.data.data;
   } catch (error) {
     console.log(error);
@@ -57,10 +123,7 @@ const fetchProduct = async (id: string) => {
 
 const getMenProductByCategory = async () => {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products/category/men`,
-    );
-
+    const response = await apiClient.get('/api/v1/products/category/men');
     return response.data.products;
   } catch (error) {
     console.log(error);
@@ -70,10 +133,7 @@ const getMenProductByCategory = async () => {
 
 const getWomenProductByCategory = async () => {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products/category/women`,
-    );
-
+    const response = await apiClient.get('/api/v1/products/category/women');
     return response.data.products;
   } catch (error) {
     console.log(error);
@@ -83,10 +143,7 @@ const getWomenProductByCategory = async () => {
 
 const getWatches = async () => {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products/type/watch`,
-    );
-
+    const response = await apiClient.get('/api/v1/products/type/watch');
     return response.data.products;
   } catch (error) {
     console.log(error);
@@ -96,10 +153,7 @@ const getWatches = async () => {
 
 const getBags = async () => {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products/type/bags`,
-    );
-
+    const response = await apiClient.get('/api/v1/products/type/bags');
     return response.data.products;
   } catch (error) {
     console.log(error);
@@ -113,17 +167,11 @@ const getBags = async () => {
 
 const loginUser = async (formData: LoginData) => {
   try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/login`,
-      {
-        email: formData.email,
-        password: formData.password,
-      },
-      {
-        withCredentials: true,
-      },
-    );
-
+    const response = await apiClient.post('/api/v1/users/login', {
+      email: formData.email,
+      password: formData.password,
+    });
+    storeTokens(response.data);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -133,21 +181,15 @@ const loginUser = async (formData: LoginData) => {
 
 const signupUser = async (formData: SignupData) => {
   try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/signup`,
-      {
-        firstName: formData.firstName,
-        lastName: formData.lastName,
-        email: formData.email,
-        password: formData.password,
-        passwordConfirm: formData.passwordConfirm,
-        role: formData.role || 'user',
-      },
-      {
-        withCredentials: true,
-      },
-    );
-
+    const response = await apiClient.post('/api/v1/users/signup', {
+      firstName: formData.firstName,
+      lastName: formData.lastName,
+      email: formData.email,
+      password: formData.password,
+      passwordConfirm: formData.passwordConfirm,
+      role: formData.role || 'user',
+    });
+    // No tokens returned on signup, only OTP pending message
     return response.data;
   } catch (error) {
     console.log(error);
@@ -157,17 +199,11 @@ const signupUser = async (formData: SignupData) => {
 
 const verifyOtp = async (formData: VerifyOtpData) => {
   try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/verifyotp`,
-      {
-        email: formData.email,
-        otp: formData.otp,
-      },
-      {
-        withCredentials: true,
-      },
-    );
-
+    const response = await apiClient.post('/api/v1/users/verifyotp', {
+      email: formData.email,
+      otp: formData.otp,
+    });
+    storeTokens(response.data);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -181,11 +217,7 @@ const verifyOtp = async (formData: VerifyOtpData) => {
 
 const forgetPassword = async (email: string) => {
   try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/forgetPassword`,
-      { email },
-    );
-
+    const response = await apiClient.post('/api/v1/users/forgetPassword', { email });
     return response.data;
   } catch (error) {
     console.log(error);
@@ -196,17 +228,14 @@ const forgetPassword = async (email: string) => {
 const resetPassword = async (
   token: string,
   password: string,
-  passwordConfirm: string,
+  passwordConfirm: string
 ) => {
   try {
-    const response = await axios.patch(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/resetPassword/${token}`,
-      {
-        password,
-        passwordConfirm,
-      },
-    );
-
+    const response = await apiClient.patch(`/api/v1/users/resetPassword/${token}`, {
+      password,
+      passwordConfirm,
+    });
+    storeTokens(response.data);
     return response.data;
   } catch (error) {
     console.log(error);
@@ -225,208 +254,118 @@ const createPayPalOrder = async (orderData: {
   phone: string;
 }) => {
   try {
-    const response = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/orders/create-order`,
-      orderData,
-      {
-        withCredentials: true,
-      },
-    );
-
+    const response = await apiClient.post('/api/v1/orders/create-order', orderData);
     return response.data;
   } catch (error) {
     console.log('PAYPAL ERROR:', error);
     throw error;
   }
 };
+
 /* =========================================================
-   getme
+   GET ME
 ========================================================= */
 const getMe = async () => {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/me`,
-     {
-  
-    withCredentials: true,
-  }
-    );
-
+    const response = await apiClient.get('/api/v1/users/me');
     return response.data.data;
   } catch (error: any) {
     if (error?.response?.status === 429) {
-      console.warn("Too many requests to /me");
+      console.warn('Too many requests to /me');
     }
-
     throw error;
   }
 };
 
 /* =========================================================
-   logout
+   LOGOUT
 ========================================================= */
-
 const logOut = async () => {
   try {
-    const response = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/logout`,
-      {
-        withCredentials: true, // IMPORTANT (JWT cookie)
-      },
-    );
+    await apiClient.get('/api/v1/users/logout');
+    clearTokens();
   } catch (error) {
     console.log(error);
     throw error;
   }
 };
-/* =========================================================
-   ADD TO CART
-========================================================= */
 
+/* =========================================================
+   CART
+========================================================= */
 const addToCart = async (productId: number, quantity = 1) => {
   try {
-    const res = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/carts`,
-      {
-        productId,
-        quantity,
-      },
-      {
-        withCredentials: true,
-      },
-    );
-
+    const res = await apiClient.post('/api/v1/carts', { productId, quantity });
     return res.data.data.cart;
   } catch (error) {
     console.log('ADD TO CART ERROR:', error);
-
     throw error;
   }
 };
-
-/* =========================================================
-   GET CART
-========================================================= */
 
 const getCart = async () => {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/carts`,
-      {
-        withCredentials: true,
-
-        // PREVENT CACHE
-        headers: {
-          'Cache-Control': 'no-cache',
-        },
-      },
-    );
-
+    const res = await apiClient.get('/api/v1/carts', {
+      headers: { 'Cache-Control': 'no-cache' },
+    });
     return res.data.data.cart;
   } catch (error) {
     console.log('GET CART ERROR:', error);
-
     throw error;
   }
 };
-/* =========================================================
-   update cart
-========================================================= */
+
 const updateCartItem = async (itemId: number, quantity: number) => {
-  const res = await axios.patch(
-    `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/carts/${itemId}`,
-    { quantity },
-    {
-      withCredentials: true,
-      headers: {
-        'Cache-Control': 'no-cache',
-      },
-    },
-  );
-
+  const res = await apiClient.patch(`/api/v1/carts/${itemId}`, { quantity }, {
+    headers: { 'Cache-Control': 'no-cache' },
+  });
   return res.data.data.cart;
 };
-/* =========================================================
-   remove cart
-========================================================= */
+
 const removeCartItem = async (itemId: number) => {
-  const res = await axios.delete(
-    `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/carts/${itemId}`,
-    {
-      withCredentials: true,
-      headers: {
-        'Cache-Control': 'no-cache',
-      },
-    },
-  );
-
+  const res = await apiClient.delete(`/api/v1/carts/${itemId}`, {
+    headers: { 'Cache-Control': 'no-cache' },
+  });
   return res.data.data.cart;
 };
+
 /* =========================================================
-   TRACK ORDER
+   ORDERS
 ========================================================= */
-
-const trackOrder = async (
-  trackingNumber: string
-) => {
-  const res = await axios.get(
-    `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/orders/track/${trackingNumber}`,
-    {
-      withCredentials: true,
-      headers: {
-        'Cache-Control': 'no-cache',
-      },
-    }
-  );
-
+const trackOrder = async (trackingNumber: string) => {
+  const res = await apiClient.get(`/api/v1/orders/track/${trackingNumber}`, {
+    headers: { 'Cache-Control': 'no-cache' },
+  });
   return res.data;
 };
-/* =========================================================
-get user orders
-========================================================= */
+
 const getUserOrders = async () => {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/orders/user-orders`,
-      {
-        withCredentials: true,
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      }
-    );
-
+    const res = await apiClient.get('/api/v1/orders/user-orders', {
+      headers: { 'Cache-Control': 'no-cache' },
+    });
     return res.data.data.orders;
   } catch (error) {
-    console.log("GET USER ORDERS ERROR:", error);
+    console.log('GET USER ORDERS ERROR:', error);
     throw error;
   }
 };
-/* =========================================================
-get user orders
-========================================================= */
+
 const getOrderDetails = async (orderId: number) => {
   try {
-    const res = await axios.get(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/orders/${orderId}`,
-      {
-        withCredentials: true,
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      }
-    );
-
+    const res = await apiClient.get(`/api/v1/orders/${orderId}`, {
+      headers: { 'Cache-Control': 'no-cache' },
+    });
     return res.data.data.order;
   } catch (error) {
-    console.log("GET ORDER DETAILS ERROR:", error);
+    console.log('GET ORDER DETAILS ERROR:', error);
     throw error;
   }
 };
-/* =========================================================
-   ADD PRODUCT
-========================================================= */
 
+/* =========================================================
+   PRODUCT ADMIN
+========================================================= */
 const addProduct = async (productData: {
   name: string;
   description: string;
@@ -437,27 +376,15 @@ const addProduct = async (productData: {
   category: string;
 }) => {
   try {
-    const res = await axios.post(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products`,
-      productData,
-      {
-        withCredentials: true,
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      }
-    );
-
+    const res = await apiClient.post('/api/v1/products', productData, {
+      headers: { 'Cache-Control': 'no-cache' },
+    });
     return res.data.product;
   } catch (error) {
-    console.log("ADD PRODUCT ERROR:", error);
+    console.log('ADD PRODUCT ERROR:', error);
     throw error;
   }
 };
-
-/* =========================================================
-   UPDATE PRODUCT
-========================================================= */
 
 const updateProduct = async (
   productId: number,
@@ -472,54 +399,31 @@ const updateProduct = async (
   }>
 ) => {
   try {
-    const res = await axios.patch(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products/${productId}`,
-      updatedData,
-      {
-        withCredentials: true,
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      }
-    );
-
+    const res = await apiClient.patch(`/api/v1/products/${productId}`, updatedData, {
+      headers: { 'Cache-Control': 'no-cache' },
+    });
     return res.data.data || res.data.product;
   } catch (error) {
-    console.log("UPDATE PRODUCT ERROR:", error);
+    console.log('UPDATE PRODUCT ERROR:', error);
     throw error;
   }
 };
 
-/* =========================================================
-   DELETE PRODUCT
-========================================================= */
-
-const deleteProduct = async (
-  productId: number
-) => {
+const deleteProduct = async (productId: number) => {
   try {
-    const res = await axios.delete(
-      `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/products/${productId}`,
-      {
-        withCredentials: true,
-        headers: {
-          "Cache-Control": "no-cache",
-        },
-      }
-    );
-
+    const res = await apiClient.delete(`/api/v1/products/${productId}`, {
+      headers: { 'Cache-Control': 'no-cache' },
+    });
     return res.data;
   } catch (error) {
-    console.log("DELETE PRODUCT ERROR:", error);
+    console.log('DELETE PRODUCT ERROR:', error);
     throw error;
   }
 };
-
 
 /* =========================================================
    EXPORTS
 ========================================================= */
-
 export {
   fetchProducts,
   fetchProduct,
@@ -543,6 +447,6 @@ export {
   addToCart,
   trackOrder,
   getUserOrders,
-getOrderDetails,
+  getOrderDetails,
   createPayPalOrder,
 };
