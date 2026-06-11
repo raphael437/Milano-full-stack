@@ -268,6 +268,7 @@ const createPayPalOrder = async (orderData: {
 const getMe = async () => {
   try {
     const response = await apiClient.get('/api/v1/users/me');
+    // Backend returns { data: { user: {...} } }
     return response.data.data;
   } catch (error: any) {
     if (error?.response?.status === 429) {
@@ -276,7 +277,6 @@ const getMe = async () => {
     throw error;
   }
 };
-
 /* =========================================================
    LOGOUT
 ========================================================= */
