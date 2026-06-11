@@ -29,19 +29,11 @@ function PayPalSuccessContent() {
 
         console.log(orderId);
 
-      await axios.post(
-  `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/orders/capture`,
-  { 
-    orderId,
-    // If you saved shipping data in localStorage or state, send it here
-    shipCountry: "...",
-    shipCity: "...",
-    shipPostalCode: "...",
-    shipAddress1: "...",
-    phone: "..."
-  },
-  { withCredentials: true }
-);
+        await axios.post(
+          `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/orders/capture`,
+          { orderId },
+          { withCredentials: true }
+        );
 
         setTimeout(() => {
           router.push("/orders");
