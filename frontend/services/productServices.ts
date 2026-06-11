@@ -426,6 +426,7 @@ const deleteProduct = async (productId: number) => {
 ========================================================= */
 export {
   fetchProducts,
+   apiClient ,
   fetchProduct,
   addProduct,
   updateProduct,
