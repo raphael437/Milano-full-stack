@@ -24,6 +24,7 @@ type VerifyOtpData = {
   email: string;
   otp: string;
 };
+const token = localStorage.getItem("token");
 
 /* =========================================================
    PRODUCTS
@@ -242,13 +243,16 @@ const createPayPalOrder = async (orderData: {
 /* =========================================================
    getme
 ========================================================= */
-const getMe = async () => {
+cconst getMe = async () => {
   try {
     const response = await axios.get(
       `${process.env.NEXT_PUBLIC_BACK_API_URL}/api/v1/users/me`,
-      {
-        withCredentials: true,
-      }
+     {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+    withCredentials: true,
+  }
     );
 
     return response.data.data;
