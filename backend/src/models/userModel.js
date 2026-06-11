@@ -92,13 +92,10 @@ User.prototype.createPasswordResetToken = async function () {
 User.prototype.correctPassword = async function (sentPassword, userPassword) {
   return await bcrypt.compare(sentPassword, userPassword);
 };
-User.prototype.changedPasswordAfter = function (jwtTimeStamp) {
+User.prototype.changedPasswordAfter = function(JWTTimestamp) {
   if (this.passwordChangedAt) {
-    const changedTimeStamp = parseInt(
-      this.passwordChangedAt.getTime() / 1000,
-      10
-    );
-    return jwtTimeStamp < changedTimeStamp;
+    const changedTimestamp = parseInt(this.passwordChangedAt.getTime() / 1000, 10);
+    return JWTTimestamp < changedTimestamp;
   }
   return false;
 };
