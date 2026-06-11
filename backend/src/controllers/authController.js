@@ -302,8 +302,8 @@ exports.refreshToken = catchAsync(async (req, res, next) => {
     Date.now() + process.env.JWT_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
   ),
   httpOnly: true,
-  sameSite: "lax",
-  secure: false, 
+  sameSite: "none",
+  secure: true, 
 };
 
   const refreshTokenCookieOptions = {
@@ -311,9 +311,9 @@ exports.refreshToken = catchAsync(async (req, res, next) => {
       Date.now() +
         process.env.REFRESH_TOKEN_COOKIE_EXPIRES_IN * 24 * 60 * 60 * 1000
     ),
-    httpOnly: true,
-    sameSite: "lax", 
-  secure: false,   
+     httpOnly: true,
+     sameSite: "none", 
+     secure: true,   
   };
 
   if (process.env.NODE_ENV === 'production') {
